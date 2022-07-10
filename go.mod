@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/desertbit/grumble v1.1.3
+	github.com/fatih/color v1.13.0
 	github.com/spf13/viper v1.12.0
 )
 
@@ -12,7 +13,6 @@ require (
 	github.com/desertbit/columnize v2.1.0+incompatible // indirect
 	github.com/desertbit/go-shlex v0.1.1 // indirect
 	github.com/desertbit/readline v1.5.1 // indirect
-	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

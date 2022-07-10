@@ -3,10 +3,16 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/desertbit/grumble"
 	"os"
 	"os/exec"
+
+	"github.com/desertbit/grumble"
 )
+
+func ExecSystemCmdWithBash(app *grumble.App, cmdAndArgs []string) error {
+	cmdAndArgs = append([]string{"-c"}, cmdAndArgs...)
+	return ExecSystemCmdWithApp(app, "bash", cmdAndArgs...)
+}
 
 func ExecSystemCmdWithApp(app *grumble.App, cmd string, args ...string) error {
 	wdPath, err := os.Getwd()
@@ -24,7 +30,7 @@ func ExecSystemCmdWithAppAndWorkDir(app *grumble.App, workDir, cmd string, args 
 	command.Stdin = os.Stdin
 	command.Dir = workDir
 	if err := command.Run(); err != nil {
-		return errors.New(fmt.Sprintf("执行系统命令[%s]失败: %s", cmd, err.Error()))
+		return fmt.Errorf("执行系统命令[%s]失败: %s", cmd, err.Error())
 	}
 	return nil
 }
