@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
+	"github.com/byzk-project-deploy/terminal-client/config"
 	"github.com/desertbit/grumble"
 )
 
-func ExecSystemCmdWithBash(app *grumble.App, cmdAndArgs []string) error {
-	cmdAndArgs = append([]string{"-c"}, cmdAndArgs...)
-	return ExecSystemCmdWithApp(app, "bash", cmdAndArgs...)
+func ExecSystemCmdWithCurrentShell(app *grumble.App, cmdAndArgs []string) error {
+	cmdAndArgs = append(config.Current().System.CallShellArgs, strings.Join(cmdAndArgs, " "))
+	return ExecSystemCmdWithApp(app, config.Current().System.CallShellPath, cmdAndArgs...)
 }
 
 func ExecSystemCmdWithApp(app *grumble.App, cmd string, args ...string) error {

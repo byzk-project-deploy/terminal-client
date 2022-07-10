@@ -4,13 +4,37 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/byzk-project-deploy/terminal-client/config"
 	"github.com/byzk-project-deploy/terminal-client/user"
 	"github.com/byzk-project-deploy/terminal-client/utils"
 	"github.com/desertbit/grumble"
+	"github.com/spf13/viper"
 )
 
-func initFileSystemCmd() {
+func initSystemCmd() {
+	current.AddCommand(&grumble.Command{
+		Name: "shell",
+		Help: "查看与设置当前系统调用的shell环境",
+		Args: func(a *grumble.Args) {
+			a.String("shell", "要设置为当前shell的shell路径", grumble.Default(""))
+			a.StringList("shellArgs", "shell的启动参数", grumble.Default([]string{}))
+		},
+		Run: func(c *grumble.Context) error {
+			settingShellPath := c.Args.String("shell")
+			if settingShellPath != "" {
+				viper.Set("system.callShellPath", settingShellPath)
+				viper.Set("system.callShellArgs", c.Args.StringList("shellArgs"))
+				viper.WriteConfig()
+				return nil
+			}
+			argsStr := strings.Join(config.Current().System.CallShellArgs, " ")
+			c.App.Printf("%s %s\n", config.Current().System.CallShellPath, argsStr)
+			return nil
+		},
+	})
+
 	current.AddCommand(&grumble.Command{
 		Name: "pwd",
 		Help: "查看当前所在路径",
@@ -39,13 +63,16 @@ func initFileSystemCmd() {
 	})
 
 	current.AddCommand(&grumble.Command{
-		Name: "call",
+		Name:    "call",
+		Aliases: []string{"c"},
+		Usage: `call cmd [flags...] [args...]
+  c cmd [flags...] [args...]`,
 		Args: func(a *grumble.Args) {
 			a.StringList("args", "系统命令与参数")
 		},
 		Help: "调用系统内部的命令",
 		Run: func(c *grumble.Context) error {
-			return utils.ExecSystemCmdWithBash(c.App, c.Args.StringList("args"))
+			return utils.ExecSystemCmdWithCurrentShell(c.App, c.Args.StringList("args"))
 		},
 	})
 

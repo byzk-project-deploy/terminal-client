@@ -1,11 +1,13 @@
 package config
 
 import (
-	"github.com/byzk-project-deploy/terminal-client/errors"
-	"github.com/byzk-project-deploy/terminal-client/user"
-	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
+
+	"github.com/byzk-project-deploy/terminal-client/errors"
+	"github.com/byzk-project-deploy/terminal-client/user"
+	"github.com/fsnotify/fsnotify"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -20,6 +22,8 @@ var (
 func init() {
 	viper.SetConfigFile(configFilePath)
 	viper.SetConfigType("toml")
+	viper.SetDefault("system.callShellPath", "/usr/bin/bash")
+	viper.SetDefault("system.callShellArgs", []string{"-c"})
 
 	stat, err := os.Stat(configFilePath)
 	if err != nil || stat.IsDir() {
@@ -38,6 +42,15 @@ func init() {
 
 	if err = viper.Unmarshal(&currentConfig); err != nil {
 		errors.ExitConfigFileParser.Println("配置文件解析失败: %s", err.Error())
+	}
+	viper.OnConfigChange(configOnChange)
+	viper.WatchConfig()
+}
+
+func configOnChange(in fsnotify.Event) {
+	var tempConfig *Info
+	if err := viper.Unmarshal(&tempConfig); err == nil {
+		currentConfig = tempConfig
 	}
 }
 

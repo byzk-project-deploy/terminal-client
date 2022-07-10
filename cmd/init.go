@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"github.com/desertbit/grumble"
-	"github.com/fatih/color"
 	"os"
 	"path/filepath"
+
+	"github.com/desertbit/grumble"
+	"github.com/fatih/color"
 )
 
 var (
@@ -17,7 +18,7 @@ var (
 
 func initCmd() {
 	initHistoryCmd()
-	initFileSystemCmd()
+	initSystemCmd()
 }
 
 func Run() {

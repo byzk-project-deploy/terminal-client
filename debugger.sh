@@ -1,1 +1,1 @@
-dlv debug --handless --listen=:2345 --api-version=2
+dlv debug --headless --listen=:2345 --api-version=2
