@@ -10,6 +10,8 @@ import (
 	"github.com/byzk-project-deploy/terminal-client/user"
 	"github.com/byzk-project-deploy/terminal-client/utils"
 	"github.com/desertbit/grumble"
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 	"github.com/spf13/viper"
 )
 
@@ -55,9 +57,19 @@ func initSystemCmd() {
 		},
 		Help: "变更当前系统路径",
 		Run: func(c *grumble.Context) error {
-			if err := os.Chdir(c.Args.String("path")); err != nil {
-				return fmt.Errorf("变更当前目录失败: " + err.Error())
+			// if err := os.Chdir(c.Args.String("path")); err != nil {
+			// 	return fmt.Errorf("变更当前目录失败: " + err.Error())
+			// }
+			// return nil
+			box := tview.NewBox().SetBorder(true).SetTitle("Hello, world!")
+			if err := tview.NewApplication().SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+				k := event.Key()
+				fmt.Println(k)
+				return nil
+			}).SetRoot(box, false).Run(); err != nil {
+				return err
 			}
+
 			return nil
 		},
 	})
@@ -72,8 +84,14 @@ func initSystemCmd() {
 		},
 		Help: "调用系统内部的命令",
 		Run: func(c *grumble.Context) error {
-			return utils.ExecSystemCmdWithCurrentShell(c.App, c.Args.StringList("args"))
+			return utils.ExecSystemCall(c.App, "unix", c.Args.StringList("args"))
 		},
 	})
 
+	current.SetNoFindCommandHandler(noFindCommandHandle)
+}
+
+func noFindCommandHandle(app *grumble.App, args []string) error {
+	args = append([]string{"c"}, args...)
+	return app.RunCommand(args)
 }

@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/byzk-project-deploy/terminal-client/stdio"
 	"github.com/desertbit/grumble"
 	"github.com/fatih/color"
 )
@@ -11,10 +12,22 @@ import (
 var (
 	historyFile = filepath.Join(os.TempDir(), "bypt.hist")
 
-	pwdPath, _ = os.Getwd()
-
 	current *grumble.App
 )
+
+func settingPrompt(name string) {
+	if current == nil {
+		return
+	}
+
+	promptPrefix := "bypt"
+	if name != "" {
+		promptPrefix += "@" + name
+	}
+	promptStr := promptPrefix + " » "
+	current.SetPrompt(promptStr)
+
+}
 
 func initCmd() {
 	initHistoryCmd()
@@ -25,15 +38,19 @@ func Run() {
 
 	current = grumble.New(&grumble.Config{
 		Name:                  "bypt",
-		Prompt:                "bypt » ",
 		HistoryFile:           historyFile,
 		PromptColor:           color.New(color.FgGreen, color.Bold),
 		HelpHeadlineColor:     color.New(color.FgGreen),
 		HelpHeadlineUnderline: true,
 		HelpSubCommands:       true,
+		Stdin:                 stdio.Stdin,
 	})
 
+	// server.InitUnixServer(current)
+
 	initCmd()
+
+	settingPrompt("")
 
 	current.SetInterruptHandler(func(a *grumble.App, count int) {
 	})
@@ -64,5 +81,5 @@ func Run() {
 		return
 	}
 
-	os.Exit(1)
+	os.Exit(0)
 }
