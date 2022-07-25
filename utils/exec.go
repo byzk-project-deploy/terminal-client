@@ -44,16 +44,11 @@ func WriteRuneToCurrentDial(r rune) bool {
 	return true
 }
 
-func ExecSystemCall(app *grumble.App, addressName string, cmdAndArgs []string) error {
+func ExecSystemCall(app *grumble.App, serve *server.ServerInfo, cmdAndArgs []string) error {
 
 	// if addressName == "unix" {
 	// 	return ExecSystemCmdWithCurrentShell(app, cmdAndArgs)
 	// }
-
-	serve, err := server.OpenServer(addressName)
-	if err != nil {
-		return fmt.Errorf("与远程服务器建立连接失败: %s", err.Error())
-	}
 
 	clientRand := passwd.Generator()
 	systemCallData := &serverclientcommon.SystemCallOption{
@@ -81,44 +76,7 @@ func ExecSystemCall(app *grumble.App, addressName string, cmdAndArgs []string) e
 	defer t.Close()
 
 	// t.Run("/usr/bin/zsh -i -c \"" + strings.Join(cmdAndArgs, " ") + "\"")
-	t.Run("sh  -i -c \"" + strings.Join(cmdAndArgs, " ") + "\"")
-
-	// // 创建 ssh 配置
-	// sshConfig := &ssh.ClientConfig{
-	// 	User: userName,
-	// 	Auth: []ssh.AuthMethod{
-	// 		ssh.Password(serverKey),
-	// 	},
-	// 	HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	// 	Timeout:         5 * time.Second,
-	// }
-
-	// if systemCallData.Addr[0] != ':' {
-	// 	systemCallData.Addr = ":" + systemCallData.Addr
-	// }
-	// // 创建 client
-	// // client, err := ssh.Dial("tcp", addressName+systemCallData.Addr, sshConfig)
-	// client, err := ssh.Dial("tcp", "127.0.0.1"+systemCallData.Addr, sshConfig)
-	// if err != nil {
-	// 	return fmt.Errorf("创建命令转发通道失败: %s", err.Error())
-	// }
-	// defer client.Close()
-
-	// session, err := client.NewSession()
-	// if err != nil {
-	// 	return fmt.Errorf("创建会话失败: %s", err.Error())
-	// }
-	// defer session.Close()
-
-	// fd := int(os.Stdin.Fd())
-	// // make raw
-	// state, err := terminal.MakeRaw(fd)
-	// if err != nil {
-	// 	return fmt.Errorf("转换原始终端失败: %s", err.Error())
-	// }
-	// defer terminal.Restore(fd, state)
-
-	return nil
+	return t.Run(strings.Join(cmdAndArgs, " "))
 }
 
 func ExecSystemCmdWithCurrentShell(app *grumble.App, cmdAndArgs []string) error {

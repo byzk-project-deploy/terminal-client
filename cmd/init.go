@@ -1,85 +1,75 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/byzk-project-deploy/terminal-client/stdio"
+	"github.com/byzk-project-deploy/terminal-client/cmdmodel"
+	"github.com/byzk-project-deploy/terminal-client/loading"
 	"github.com/desertbit/grumble"
-	"github.com/fatih/color"
 )
 
 var (
 	historyFile = filepath.Join(os.TempDir(), "bypt.hist")
-
-	current *grumble.App
 )
 
-func settingPrompt(name string) {
-	if current == nil {
-		return
-	}
-
-	promptPrefix := "bypt"
-	if name != "" {
-		promptPrefix += "@" + name
-	}
-	promptStr := promptPrefix + " » "
-	current.SetPrompt(promptStr)
-
+type ContextWrapper struct {
+	*grumble.Context
+	haveErr         bool
+	successCallback func() error
 }
 
-func initCmd() {
-	initHistoryCmd()
-	initSystemCmd()
+func (c *ContextWrapper) PrintError(err error) {
+	loading.Spinner().Stop()
+	c.haveErr = true
+	c.Context.App.PrintError(err)
+}
+
+func (c *ContextWrapper) Success() bool {
+	return !c.haveErr
+}
+
+func (c *ContextWrapper) SuccessCallback(fn func() error) {
+	c.successCallback = fn
+}
+
+func cmdErrRunWrapper(f func(c *ContextWrapper) error) func(c *grumble.Context) error {
+	return func(c *grumble.Context) error {
+		contextWrapper := &ContextWrapper{
+			Context: c,
+		}
+
+		if err := f(contextWrapper); err != nil {
+			return err
+		}
+
+		if contextWrapper.haveErr {
+			return fmt.Errorf("命令均已全部执行, 但执行过程中发生异常")
+		}
+
+		if contextWrapper.successCallback != nil {
+			return contextWrapper.successCallback()
+		}
+
+		return nil
+	}
+}
+
+// func initCmd() {
+// 	// initHistoryCmd()
+// 	// initSystemCmd()
+// 	modelConvert(modelBypt)
+// 	current.SetNoFindCommandHandler(noFindCommandHandle)
+// }
+
+func init() {
+	cmdmodel.Registry(cmdmodel.ModelBypt, &cmdmodel.ModelInfo{
+		Commands:            byptCommands,
+		NoFindCommandHandle: noFindCommandHandle,
+	})
 }
 
 func Run() {
-
-	current = grumble.New(&grumble.Config{
-		Name:                  "bypt",
-		HistoryFile:           historyFile,
-		PromptColor:           color.New(color.FgGreen, color.Bold),
-		HelpHeadlineColor:     color.New(color.FgGreen),
-		HelpHeadlineUnderline: true,
-		HelpSubCommands:       true,
-		Stdin:                 stdio.Stdin,
-	})
-
-	// server.InitUnixServer(current)
-
-	initCmd()
-
-	settingPrompt("")
-
-	current.SetInterruptHandler(func(a *grumble.App, count int) {
-	})
-	current.OnClose(func() error {
-		return nil
-	})
-	current.OnClosing(func() error {
-		return nil
-	})
-	current.SetPrintASCIILogo(func(a *grumble.App) {
-		_, _ = a.Println(` _`)
-		_, _ = a.Println(`| |                 _`)
-		_, _ = a.Println(`| |__  _   _ ____ _| |_`)
-		_, _ = a.Println(`|  _ \| | | |  _ (_   _)`)
-		_, _ = a.Println(`| |_) ) |_| | |_| || |_`)
-		_, _ = a.Println(`|____/ \__  |  __/  \__)`)
-		_, _ = a.Println(`      (____/|_|`)
-		_, _ = a.Println()
-		_, _ = a.Println("             版本: 3.0.0")
-		_, _ = a.Println("             作者: 无&痕")
-		_, _ = a.Println()
-		_, _ = a.Println("应用部署管理平台终端客户端一切只为便捷、高效与可靠的部署和管理应用^-^")
-		_, _ = a.Println()
-		_, _ = a.Println()
-	})
-
-	if err := current.Run(); err != nil {
-		return
-	}
-
-	os.Exit(0)
+	cmdmodel.InitApp(cmdmodel.ModelBypt, historyFile)
 }

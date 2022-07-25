@@ -3,25 +3,21 @@ module github.com/byzk-project-deploy/terminal-client
 go 1.18
 
 require (
+	github.com/briandowns/spinner v1.18.1
 	github.com/byzk-project-deploy/server-client-common v0.0.0-20220710124827-b36a9e32f8d5
 	github.com/desertbit/grumble v1.1.3
 	github.com/fatih/color v1.13.0
 	github.com/fsnotify/fsnotify v1.5.4
-	github.com/rivo/tview v0.0.0-20220709181631-73bf2902b59a
 	github.com/spf13/viper v1.12.0
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 )
 
 require (
-	github.com/gdamore/encoding v1.0.0 // indirect
-	github.com/gdamore/tcell/v2 v2.4.1-0.20210905002822-f057f0a857a1 // indirect
-	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/mattn/go-runewidth v0.0.13 // indirect
-	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
+	github.com/gliderlabs/ssh v0.3.4 // indirect
 )
 
 require (
-	github.com/creack/pty v1.1.18
 	github.com/desertbit/closer/v3 v3.1.3 // indirect
 	github.com/desertbit/columnize v2.1.0+incompatible // indirect
 	github.com/desertbit/go-shlex v0.1.1 // indirect

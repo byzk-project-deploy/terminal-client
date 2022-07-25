@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	serverclientcommon "github.com/byzk-project-deploy/server-client-common"
+	"github.com/byzk-project-deploy/terminal-client/server"
 	"github.com/byzk-project-deploy/terminal-client/stdio"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
@@ -133,6 +135,12 @@ func (t *Terminal) updateTerminalSize() {
 }
 
 func (t *Terminal) Run(cmd string) error {
+	return t.RunWithOption(cmd, &serverclientcommon.CommandRunOption{
+		WorkDir: server.CurrentPath(),
+	})
+}
+
+func (t *Terminal) RunWithOption(cmd string, option *serverclientcommon.CommandRunOption) error {
 	fd := int(os.Stdin.Fd())
 	// make raw
 	state, err := term.MakeRaw(fd)
@@ -202,6 +210,10 @@ func (t *Terminal) Run(cmd string) error {
 	defer func() {
 		t.exitCh <- struct{}{}
 	}()
+
+	option.SystemCallOptionMarshal(t.session)
+
+	t.session.Setenv("a", "")
 	err = t.session.Run(cmd)
 	if err != nil {
 		return err
