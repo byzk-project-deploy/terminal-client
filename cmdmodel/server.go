@@ -41,5 +41,5 @@ func (s *ServerList) Add(name string, r *ServerResult) {
 
 type ServerResult struct {
 	Err error
-	*server.ServerInfo
+	*server.Info
 }

@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/briandowns/spinner v1.18.1
-	github.com/byzk-project-deploy/server-client-common v0.0.0-20220710124827-b36a9e32f8d5
+	github.com/byzk-project-deploy/server-client-common v0.0.0-20220726090705-c2ce73e00829
 	github.com/desertbit/grumble v1.1.3
 	github.com/fatih/color v1.13.0
 	github.com/fsnotify/fsnotify v1.5.4
@@ -15,6 +15,8 @@ require (
 require (
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
 	github.com/gliderlabs/ssh v0.3.4 // indirect
+	github.com/go-base-lib/transport-stream v0.0.0-20220726090446-571c4f243d92 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 )
 
 require (
@@ -46,7 +48,6 @@ require (
 )
 
 replace (
-	github.com/byzk-project-deploy/server-client-common => ../server-client-common
 	github.com/desertbit/grumble => ../grumble
 	github.com/desertbit/readline => ../readline
 )

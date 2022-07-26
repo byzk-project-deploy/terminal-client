@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"strings"
-
+	"fmt"
 	serverclientcommon "github.com/byzk-project-deploy/server-client-common"
 	"github.com/byzk-project-deploy/terminal-client/server"
 	"github.com/byzk-project-deploy/terminal-client/user"
@@ -19,35 +18,46 @@ var (
 			a.StringList("shellArgs", "shell的启动参数", grumble.Default([]string{}))
 		},
 		Completer: func(prefix string, args []string) []string {
-			var (
-				r *serverclientcommon.Result
-			)
-			result := make([]string, 0, 18)
-			if len(args) > 0 {
-				return result
-			}
-			s, err := server.OpenUnixServer()
-			if err != nil {
-				goto End
-			}
-			r, err = serverclientcommon.CmdSystemShellList.Exchange(s.ReadWriter)
-			if err == nil {
-				_ = r.Data.Unmarshal(&result)
-			}
-			if prefix != "" {
-				for i := len(result) - 1; i >= 0; i-- {
-					if !strings.HasPrefix(result[i], prefix) {
-						result = append(result[:i], result[i+1:]...)
-					}
-				}
-			}
-		End:
-			if prefix == "" {
-				result = append(result, "-h", "--help")
-			}
-			return result
+			//	var (
+			//		r *serverclientcommon.Result
+			//	)
+			//	result := make([]string, 0, 18)
+			//	if len(args) > 0 {
+			//		return result
+			//	}
+			//	s, err := server.OpenUnixServer()
+			//	if err != nil {
+			//		goto End
+			//	}
+			//	r, err = serverclientcommon.CmdSystemShellList.Exchange(s.ReadWriter)
+			//	if err == nil {
+			//		_ = r.Data.Unmarshal(&result)
+			//	}
+			//	if prefix != "" {
+			//		for i := len(result) - 1; i >= 0; i-- {
+			//			if !strings.HasPrefix(result[i], prefix) {
+			//				result = append(result[:i], result[i+1:]...)
+			//			}
+			//		}
+			//	}
+			//End:
+			//	if prefix == "" {
+			//		result = append(result, "-h", "--help")
+			//	}
+			//	return result
+			return nil
 		},
 		Run: cmdErrRunWrapper(func(c *ContextWrapper) error {
+			info := server.NewUnixServerInfo()
+			stream, err := info.ConnToStream()
+			if err != nil {
+				panic(err)
+			}
+			data, err := serverclientcommon.CmdHello.ExchangeWithData("Hello", stream)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println(string(data))
 			// var res string
 			// serverList := CurrentServerList()
 			// l := serverList.Len()

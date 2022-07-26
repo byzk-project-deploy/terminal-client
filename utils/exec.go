@@ -44,7 +44,7 @@ func WriteRuneToCurrentDial(r rune) bool {
 	return true
 }
 
-func ExecSystemCall(app *grumble.App, serve *server.ServerInfo, cmdAndArgs []string) error {
+func ExecSystemCall(app *grumble.App, serve *server.Info, cmdAndArgs []string) error {
 
 	// if addressName == "unix" {
 	// 	return ExecSystemCmdWithCurrentShell(app, cmdAndArgs)
