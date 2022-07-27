@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	transport_stream "github.com/go-base-lib/transport-stream"
 	"os"
 	"os/exec"
 	"strings"
@@ -34,34 +35,19 @@ func ClearCurrentDial() {
 	currentDial = nil
 }
 
-func WriteRuneToCurrentDial(r rune) bool {
-	lock.Lock()
-	defer lock.Unlock()
-	if currentDial == nil {
-		return false
-	}
-	serverclientcommon.SuccessResult(r).WriteTo(currentDial)
-	return true
-}
-
-func ExecSystemCall(app *grumble.App, serve *server.Info, cmdAndArgs []string) error {
-
-	// if addressName == "unix" {
-	// 	return ExecSystemCmdWithCurrentShell(app, cmdAndArgs)
-	// }
+func ExecSystemCall(stream *transport_stream.Stream, serve *server.Info, cmdAndArgs []string) error {
 
 	clientRand := passwd.Generator()
 	systemCallData := &serverclientcommon.SystemCallOption{
+		Name: serve.Name(),
 		Rand: clientRand,
 	}
-	r, err := serverclientcommon.CmdSystemCall.ExchangeWithData(systemCallData, serve)
+	r, err := serverclientcommon.CmdSystemCall.ExchangeWithData(systemCallData, stream)
 	if err != nil {
 		return err
 	}
-	if r.Error {
-		return fmt.Errorf("%s: %s", r.Code, r.Msg)
-	}
-	if err = r.Data.Unmarshal(&systemCallData); err != nil {
+
+	if err = r.UnmarshalJson(&systemCallData); err != nil {
 		return fmt.Errorf("数据包解析失败: %s", err.Error())
 	}
 
@@ -69,13 +55,12 @@ func ExecSystemCall(app *grumble.App, serve *server.Info, cmdAndArgs []string) e
 	userName := systemCallData.Rand[:i]
 	serverKey := systemCallData.Rand + clientRand
 
-	t, err := remote.New(userName, serverKey, "127.0.0.1"+systemCallData.Addr)
+	t, err := remote.New(userName, serverKey, systemCallData.Network, systemCallData.Addr)
 	if err != nil {
 		return fmt.Errorf("命令执行失败: %s", err.Error())
 	}
 	defer t.Close()
 
-	// t.Run("/usr/bin/zsh -i -c \"" + strings.Join(cmdAndArgs, " ") + "\"")
 	return t.Run(strings.Join(cmdAndArgs, " "))
 }
 

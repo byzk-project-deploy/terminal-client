@@ -3,9 +3,15 @@ package cmd
 import (
 	"fmt"
 	serverclientcommon "github.com/byzk-project-deploy/server-client-common"
+	"github.com/byzk-project-deploy/terminal-client/cmdmodel"
+	"github.com/byzk-project-deploy/terminal-client/loading"
 	"github.com/byzk-project-deploy/terminal-client/server"
 	"github.com/byzk-project-deploy/terminal-client/user"
+	"github.com/byzk-project-deploy/terminal-client/utils"
 	"github.com/desertbit/grumble"
+	transport_stream "github.com/go-base-lib/transport-stream"
+	"golang.org/x/exp/slices"
+	"strings"
 )
 
 var (
@@ -18,101 +24,81 @@ var (
 			a.StringList("shellArgs", "shell的启动参数", grumble.Default([]string{}))
 		},
 		Completer: func(prefix string, args []string) []string {
-			//	var (
-			//		r *serverclientcommon.Result
-			//	)
-			//	result := make([]string, 0, 18)
-			//	if len(args) > 0 {
-			//		return result
-			//	}
-			//	s, err := server.OpenUnixServer()
-			//	if err != nil {
-			//		goto End
-			//	}
-			//	r, err = serverclientcommon.CmdSystemShellList.Exchange(s.ReadWriter)
-			//	if err == nil {
-			//		_ = r.Data.Unmarshal(&result)
-			//	}
-			//	if prefix != "" {
-			//		for i := len(result) - 1; i >= 0; i-- {
-			//			if !strings.HasPrefix(result[i], prefix) {
-			//				result = append(result[:i], result[i+1:]...)
-			//			}
-			//		}
-			//	}
-			//End:
-			//	if prefix == "" {
-			//		result = append(result, "-h", "--help")
-			//	}
-			//	return result
-			return nil
+
+			havePrefix := prefix != ""
+
+			result := make([]string, 0, 18)
+			if len(args) > 0 {
+				return result
+			}
+
+			currentModelInfo := cmdmodel.CurrentModelInfo()
+
+			_ = currentModelInfo.RangeWithContextWrapper(nil, func(name string, stream *transport_stream.Stream, info *cmdmodel.ServerConn) error {
+				r, err := serverclientcommon.CmdSystemShellList.Exchange(stream)
+				if err != nil {
+					return nil
+				}
+
+				var res []string
+				if err = r.UnmarshalJson(&res); err != nil {
+					return nil
+				}
+
+				for i := range res {
+					s := res[i]
+					if havePrefix {
+						if !strings.HasPrefix(s, prefix) {
+							continue
+						}
+					}
+
+					if slices.Contains(result, s) {
+						continue
+					}
+
+					result = append(result, s)
+				}
+				return nil
+			})
+
+			if !havePrefix {
+				result = append(result, "-h", "--help")
+			}
+
+			return result
 		},
 		Run: cmdErrRunWrapper(func(c *ContextWrapper) error {
-			info := server.NewUnixServerInfo()
-			stream, err := info.ConnToStream()
-			if err != nil {
-				panic(err)
-			}
-			data, err := serverclientcommon.CmdHello.ExchangeWithData("Hello", stream)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println(string(data))
-			// var res string
-			// serverList := CurrentServerList()
-			// l := serverList.Len()
-			// return serverList.RangeWWithContextWrapper(c, func(name string, info *cmdmodel.ServerResult) error {
+			currentModel := cmdmodel.CurrentModelInfo()
+			l := currentModel.Len()
+			return currentModel.RangeWithContextWrapper(c, func(name string, stream *transport_stream.Stream, info *cmdmodel.ServerConn) error {
+				settingShellPath := c.Args.String("shell")
+				if settingShellPath != "" {
+					if _, err := serverclientcommon.CmdSystemShellCurrentSetting.ExchangeWithData(&serverclientcommon.ShellSettingOption{
+						Name: settingShellPath,
+						Args: c.Args.StringList("shellArgs"),
+					}, stream); err != nil {
+						c.PrintError(fmt.Errorf("服务器[%s]发生错误: %s", name, err.Error()))
+					}
+					return nil
+				}
 
-			// 	settingShellPath := c.Args.String("shell")
-			// 	if settingShellPath != "" {
-			// 		if _, err := serverclientcommon.CmdSystemShellCurrentSetting.ExchangeWithData(&serverclientcommon.ShellSettingOption{
-			// 			Name: settingShellPath,
-			// 			Args: c.Args.StringList("shellArgs"),
-			// 		}, info.ReadWriter); err != nil {
-			// 			c.PrintError(fmt.Errorf("服务器[%s]发生错误: %s", name, err.Error()))
-			// 		}
-			// 		return nil
-			// 	}
+				r, err := serverclientcommon.CmdSystemShellCurrent.Exchange(stream)
+				if err != nil {
+					c.PrintError(err)
+					return nil
+				}
 
-			// 	r, err := serverclientcommon.CmdSystemShellCurrent.Exchange(info.ReadWriter)
-			// 	if err != nil {
-			// 		c.PrintError(err)
-			// 		return nil
-			// 	}
+				res := strings.TrimSpace(string(r))
 
-			// 	if err = r.Data.Unmarshal(&res); err != nil {
-			// 		c.PrintError(err)
-			// 		return nil
-			// 	}
+				if l > 1 {
+					fmt.Printf("服务[%s]响应:\n%s\n\n", name, res)
+				} else {
+					fmt.Println(res)
+				}
 
-			// 	res = strings.TrimSpace(res)
-
-			// 	if l > 0 {
-			// 		fmt.Printf("服务[%s]响应:\n%s\n\n", name, res)
-			// 	} else {
-			// 		fmt.Println(res)
-			// 	}
-
-			// 	return nil
-
-			// })
-			return nil
-			// func(c *grumble.Context) error {
-			// 	serverList := CurrentServerList()
-			// 	l := serverList.Len()
-			// 	serverList.RangeWWithContextWrapper()
-			// 	settingShellPath := c.Args.String("shell")
-			// 	if settingShellPath != "" {
-			// 		viper.Set("system.callShellPath", settingShellPath)
-			// 		viper.Set("system.callShellArgs", c.Args.StringList("shellArgs"))
-			// 		viper.WriteConfig()
-			// 		return nil
-			// 	}
-			// 	serverclientcommon.CmdSystemShellCurrent.Exchange()
-			// 	argsStr := strings.Join(config.Current().System.CallShellArgs, " ")
-			// 	c.App.Printf("%s %s\n", config.Current().System.CallShellPath, argsStr)
-			// 	return nil
-			// }
+				return nil
+			})
 		}),
 	}
 
@@ -134,39 +120,31 @@ var (
 		},
 		Help: "变更系统中当前的路径, 如果目录不存在则报错",
 		Run: cmdErrRunWrapper(func(c *ContextWrapper) error {
-			// var ok *bool
-			// p := strings.TrimSpace(c.Args.String("path"))
-			// if p == "" {
-			// 	p = user.HomeDir()
-			// }
-			// p = server.JoinPath(p)
-			// if p == server.CurrentPath() {
-			// 	return nil
-			// }
-			// c.SuccessCallback(func() error {
-			// 	server.CurrentPathChange(p)
-			// 	return nil
-			// })
-			// s := loading.Loading("正在加载服务列表")
-			// defer s.Stop()
+			p := strings.TrimSpace(c.Args.String("path"))
+			if p == "" {
+				p = user.HomeDir()
+			}
+			p = server.JoinPath(p)
+			if p == server.CurrentPath() {
+				return nil
+			}
+			c.SuccessCallback(func() error {
+				server.CurrentPathChange(p)
+				return nil
+			})
+			s := loading.Loading("正在加载服务列表")
+			defer s.Stop()
 
-			// serverList := CurrentServerList()
+			currentModel := cmdmodel.CurrentModelInfo()
 
-			// serverList.RangeWWithContextWrapper(c, func(name string, info *cmdmodel.ServerResult) error {
-			// 	s.UpdateSuffix(fmt.Sprintf("正在[%s]上执行", name))
-			// 	r, err := serverclientcommon.CmdSystemDirPath.ExchangeWithData(p, info.ReadWriter)
-			// 	if err != nil {
-			// 		c.PrintError(fmt.Errorf("获取服务器[%s]上的地址[%s]失败: %s", name, p, err.Error()))
-			// 		return nil
-			// 	}
-
-			// 	if err = r.Data.Unmarshal(&ok); err != nil || !*ok {
-			// 		c.PrintError(fmt.Errorf("服务器[%s]地址[%s]不存在", name, p))
-			// 	}
-			// 	return nil
-			// })
-
-			return nil
+			return currentModel.RangeWithContextWrapper(c, func(name string, stream *transport_stream.Stream, info *cmdmodel.ServerConn) error {
+				s.UpdateSuffix(fmt.Sprintf("正在[%s]上执行", name))
+				_, err := serverclientcommon.CmdSystemDirPath.ExchangeWithData(p, stream)
+				if err != nil {
+					c.PrintError(fmt.Errorf("获取服务器[%s]上的地址[%s]失败: %s", name, p, err.Error()))
+				}
+				return nil
+			})
 		}),
 	}
 
@@ -181,12 +159,13 @@ var (
 		},
 		Help: "调用系统内部的命令",
 		Run: cmdErrRunWrapper(func(c *ContextWrapper) error {
-			return nil
-			// serverList := CurrentServerList()
-			// return serverList.RangeWWithContextWrapper(c, func(name string, info *cmdmodel.ServerResult) error {
-			// 	utils.ExecSystemCall(c.App, info.ServerInfo, c.Args.StringList("args"))
-			// 	return nil
-			// })
+			currentModel := cmdmodel.CurrentModelInfo()
+			return currentModel.RangeWithContextWrapper(c, func(name string, stream *transport_stream.Stream, info *cmdmodel.ServerConn) error {
+				if err := utils.ExecSystemCall(stream, info.Info, c.Args.StringList("args")); err != nil {
+					c.PrintError(fmt.Errorf("在服务器[%s]上执行命令失败, 错误原因: %s", name, err.Error()))
+				}
+				return nil
+			})
 		}),
 	}
 )

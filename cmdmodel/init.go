@@ -2,6 +2,7 @@ package cmdmodel
 
 import (
 	"fmt"
+	"github.com/byzk-project-deploy/terminal-client/server"
 	"os"
 
 	"github.com/byzk-project-deploy/terminal-client/stdio"
@@ -25,14 +26,17 @@ func CurrentModelInfo() *ModelInfo {
 func Registry(name ModelName, info *ModelInfo) {
 	info.Name = name
 	if info.ServerList == nil {
-		info.ServerList = &ServerList{}
+		info.ServerList = newServerList()
 	}
+	info.ServerList.Add("unix", &ServerConn{
+		Info: server.NewUnixServerInfo(),
+	})
 	modelMap[name] = info
 }
 
 func InitApp(currentModelName ModelName, historyFile string) {
 	if info, ok := modelMap[currentModelName]; !ok {
-		fmt.Println("缺失的终端信息...")
+		fmt.Println("缺失的终端模式信息...")
 		os.Exit(1)
 	} else {
 		currentModelInfo = info

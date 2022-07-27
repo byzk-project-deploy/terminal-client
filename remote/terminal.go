@@ -19,6 +19,7 @@ import (
 type Terminal struct {
 	user     string
 	password string
+	network  string
 	addr     string
 	sshCli   *ssh.Client
 	session  *ssh.Session
@@ -30,10 +31,11 @@ type Terminal struct {
 	exitCh chan struct{}
 }
 
-func New(user, password, addr string) (*Terminal, error) {
+func New(user, password, network, addr string) (*Terminal, error) {
 	terminal := &Terminal{
 		user:     user,
 		password: password,
+		network:  network,
 		addr:     addr,
 	}
 
@@ -73,7 +75,7 @@ func (t *Terminal) init() error {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         5 * time.Second,
 	}
-	t.sshCli, err = ssh.Dial("tcp", t.addr, sshConfig)
+	t.sshCli, err = ssh.Dial(t.network, t.addr, sshConfig)
 	if err != nil {
 		return fmt.Errorf("创建命令转发通道失败: %s", err.Error())
 	}

@@ -7,23 +7,20 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"strings"
 )
+
+var infoMap = make(map[string]*Info, 8)
 
 type Info struct {
 	name    string
+	alias   string
 	network string
 	address string
 	conn    net.Conn
 }
 
-func (s *Info) IP() string {
-	addrStr := s.address
-	i := strings.LastIndexByte(addrStr, ':')
-	if i == -1 {
-		return addrStr
-	}
-	return addrStr[:i]
+func (s *Info) Name() string {
+	return s.name
 }
 
 func (s *Info) ConnToStream() (*transport_stream.Stream, error) {
@@ -58,9 +55,15 @@ func NewServerInfo(name string) *Info {
 		address = unixFilePath
 	}
 
-	return &Info{
+	if info, ok := infoMap[name]; ok {
+		return info
+	}
+
+	info := &Info{
 		name:    name,
 		network: network,
 		address: address,
 	}
+	infoMap[name] = info
+	return info
 }

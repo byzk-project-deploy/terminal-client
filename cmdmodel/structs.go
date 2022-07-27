@@ -1,8 +1,21 @@
 package cmdmodel
 
-import "github.com/desertbit/grumble"
+import (
+	"fmt"
+	"github.com/desertbit/grumble"
+)
 
 type ModelName string
+
+func (m ModelName) Convert() error {
+	modelInfo, ok := modelMap[m]
+	if !ok {
+		return fmt.Errorf("未配置的模式选项")
+	}
+
+	currentModelInfo = modelInfo
+	return nil
+}
 
 const (
 	ModelBypt   ModelName = "bypt"
@@ -10,9 +23,9 @@ const (
 )
 
 type ModelInfo struct {
+	*ServerList
 	Name                ModelName
 	Commands            []*grumble.Command
-	ServerList          *ServerList
 	NoFindCommandHandle func(app *grumble.App, args []string) error
 }
 

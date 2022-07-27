@@ -45,7 +45,7 @@ func cmdErrRunWrapper(f func(c *ContextWrapper) error) func(c *grumble.Context) 
 		}
 
 		if contextWrapper.haveErr {
-			return fmt.Errorf("命令均已全部执行, 但执行过程中发生异常")
+			return fmt.Errorf("命令均已在对应服务器上部执行, 但执行过程中发生异常")
 		}
 
 		if contextWrapper.successCallback != nil {

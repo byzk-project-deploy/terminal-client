@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/briandowns/spinner v1.18.1
-	github.com/byzk-project-deploy/server-client-common v0.0.0-20220726090705-c2ce73e00829
+	github.com/byzk-project-deploy/server-client-common v0.0.0-20220727055328-8742ed021de1
 	github.com/desertbit/grumble v1.1.3
 	github.com/fatih/color v1.13.0
 	github.com/fsnotify/fsnotify v1.5.4
@@ -17,6 +17,7 @@ require (
 	github.com/gliderlabs/ssh v0.3.4 // indirect
 	github.com/go-base-lib/transport-stream v0.0.0-20220726090446-571c4f243d92 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 )
 
 require (
