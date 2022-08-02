@@ -1,21 +1,34 @@
 package cmd
 
-import "github.com/desertbit/grumble"
+import (
+	"github.com/desertbit/grumble"
+)
 
 var (
-	byptCommands = []*grumble.Command{
+	// defaultCommands 默认的命令
+	defaultCommands = []*grumble.Command{
 		shellCommand,
 		pwdCommand,
 		cdCommand,
 		callCommand,
 		historyCmd,
+		pluginConvertCmd,
 		{
 			Name: "exit",
-			Help: "exit the shell",
+			Help: "退出bypt工具",
 			Run: func(c *grumble.Context) error {
 				c.Stop()
 				return nil
 			},
 		},
+	}
+
+	// pluginCommands  插件模式下的命令
+	pluginCommands = []*grumble.Command{
+		pluginPackCmd,
+		pluginInstallCmd,
+		pluginListCmd,
+		pluginInfoCmd,
+		modelExitCmd,
 	}
 )

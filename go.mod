@@ -4,20 +4,38 @@ go 1.18
 
 require (
 	github.com/briandowns/spinner v1.18.1
-	github.com/byzk-project-deploy/server-client-common v0.0.0-20220727055328-8742ed021de1
+	github.com/byzk-project-deploy/packaging-plugin v0.0.0-20220731080505-bf55ec9ed188
+	github.com/byzk-project-deploy/server-client-common v0.0.0-20220802090937-ccdf7fd989ae
 	github.com/desertbit/grumble v1.1.3
 	github.com/fatih/color v1.13.0
 	github.com/fsnotify/fsnotify v1.5.4
+	github.com/go-base-lib/transport-stream v0.0.0-20220726090446-571c4f243d92
 	github.com/spf13/viper v1.12.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
+	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 
 require (
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
+	github.com/byzk-project-deploy/base-interface v0.0.0-20220730184505-463916a55621 // indirect
 	github.com/gliderlabs/ssh v0.3.4 // indirect
-	github.com/go-base-lib/transport-stream v0.0.0-20220726090446-571c4f243d92 // indirect
+	github.com/go-base-lib/coderutils v0.0.0-20220728101957-faf9884c898b // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/gosuri/uitable v0.0.4 // indirect
+	github.com/hashicorp/go-hclog v1.2.0 // indirect
+	github.com/hashicorp/go-plugin v1.4.4 // indirect
+	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77 // indirect
+	github.com/oklog/run v1.0.0 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/stretchr/testify v1.8.0 // indirect
+	github.com/tjfoc/gmsm v1.4.1 // indirect
+	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
+	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
+	google.golang.org/grpc v1.46.2 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 )
 
 require (
@@ -41,11 +59,11 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.3.0 // indirect
 	golang.org/x/sys v0.0.0-20220708085239-5a0f0661e09d // indirect
-	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 replace (

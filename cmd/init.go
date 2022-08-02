@@ -64,12 +64,16 @@ func cmdErrRunWrapper(f func(c *ContextWrapper) error) func(c *grumble.Context) 
 // }
 
 func init() {
-	cmdmodel.Registry(cmdmodel.ModelBypt, &cmdmodel.ModelInfo{
-		Commands:            byptCommands,
+	cmdmodel.Registry(cmdmodel.ModelDefault, &cmdmodel.ModelInfo{
+		Commands:            defaultCommands,
 		NoFindCommandHandle: noFindCommandHandle,
+	})
+
+	cmdmodel.Registry(cmdmodel.ModelPlugin, &cmdmodel.ModelInfo{
+		Commands: pluginCommands,
 	})
 }
 
 func Run() {
-	cmdmodel.InitApp(cmdmodel.ModelBypt, historyFile)
+	cmdmodel.InitApp(cmdmodel.ModelDefault, historyFile)
 }

@@ -14,12 +14,14 @@ func (m ModelName) Convert() error {
 	}
 
 	currentModelInfo = modelInfo
+	modelInfo.Convert()
 	return nil
 }
 
 const (
-	ModelBypt   ModelName = "bypt"
-	ModelServer ModelName = "server"
+	ModelDefault ModelName = "bypt"
+	ModelServer  ModelName = "server"
+	ModelPlugin  ModelName = "plugin"
 )
 
 type ModelInfo struct {
