@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"github.com/byzk-project-deploy/grumble"
 	"github.com/byzk-project-deploy/terminal-client/cmdmodel"
-	"github.com/desertbit/grumble"
 )
 
 var (

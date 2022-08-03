@@ -2,7 +2,7 @@ package cmdmodel
 
 import (
 	"fmt"
-	"github.com/desertbit/grumble"
+	"github.com/byzk-project-deploy/grumble"
 )
 
 type ModelName string

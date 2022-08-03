@@ -5,8 +5,8 @@ import (
 	"github.com/byzk-project-deploy/terminal-client/server"
 	"os"
 
+	"github.com/byzk-project-deploy/grumble"
 	"github.com/byzk-project-deploy/terminal-client/stdio"
-	"github.com/desertbit/grumble"
 	"github.com/fatih/color"
 )
 

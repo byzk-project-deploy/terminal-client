@@ -9,12 +9,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/byzk-project-deploy/grumble"
 	serverclientcommon "github.com/byzk-project-deploy/server-client-common"
 	"github.com/byzk-project-deploy/terminal-client/config"
 	"github.com/byzk-project-deploy/terminal-client/passwd"
 	"github.com/byzk-project-deploy/terminal-client/remote"
 	"github.com/byzk-project-deploy/terminal-client/server"
-	"github.com/desertbit/grumble"
 )
 
 var (

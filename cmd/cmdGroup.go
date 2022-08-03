@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/desertbit/grumble"
+	"github.com/byzk-project-deploy/grumble"
 )
 
 var (

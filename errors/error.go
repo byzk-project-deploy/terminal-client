@@ -18,6 +18,8 @@ const (
 	ExitConfigFileWriteToEmpty
 	// ExitConfigFileParser 配置解析失败
 	ExitConfigFileParser
+	// ExitTlsConfig tls配置失败
+	ExitTlsConfig
 )
 
 func (e ExitCode) Println(formatStr string, args ...any) {
