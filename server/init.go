@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-const hostname = "bypt_4913a9178621eadcdf191db17915fbcb.bypt"
+const hostname = "unix"
 
 //go:embed root.crt
 var rootPemCert []byte
@@ -41,7 +41,7 @@ func (s *Info) ConnToStream() (*transport_stream.Stream, error) {
 		s.conn.Close()
 	}
 	//conn, err := net.Dial(s.network, s.address)
-	conn, err := gmtls.Dial(s.network, s.address, getTlsConfig())
+	conn, err := gmtls.Dial(s.network, s.address, GetTlsConfig())
 	if err != nil {
 		return nil, fmt.Errorf("打开服务[%s]失败, 错误信息: %s", s.name, err.Error())
 	}

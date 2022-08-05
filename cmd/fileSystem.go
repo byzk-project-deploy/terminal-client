@@ -159,14 +159,22 @@ var (
 		},
 		Help: "调用系统内部的命令",
 		Run: cmdErrRunWrapper(func(c *ContextWrapper) error {
-			currentModel := cmdmodel.CurrentModelInfo()
-			return currentModel.RangeWithContextWrapper(c, func(name string, stream *transport_stream.Stream, info *cmdmodel.ServerConn) error {
-				if err := utils.ExecSystemCall(stream, info.Info, c.Args.StringList("args")); err != nil {
-					c.PrintError(fmt.Errorf("在服务器[%s]上执行命令失败, 错误原因: %s", name, err.Error()))
-				}
-				return nil
-			})
+			unixServerInfo := server.NewUnixServerInfo()
+			stream, err := unixServerInfo.ConnToStream()
+			if err != nil {
+				return err
+			}
+			return utils.ExecSystemCall(stream, unixServerInfo, c.Args.StringList("args"))
 		}),
+		//Run: cmdErrRunWrapper(func(c *ContextWrapper) error {
+		//	currentModel := cmdmodel.CurrentModelInfo()
+		//	return currentModel.RangeWithContextWrapper(c, func(name string, stream *transport_stream.Stream, info *cmdmodel.ServerConn) error {
+		//		if err := utils.ExecSystemCall(stream, info.Info, c.Args.StringList("args")); err != nil {
+		//			c.PrintError(fmt.Errorf("在服务器[%s]上执行命令失败, 错误原因: %s", name, err.Error()))
+		//		}
+		//		return nil
+		//	})
+		//}),
 	}
 )
 

@@ -3,6 +3,7 @@ package remote
 import (
 	"context"
 	"fmt"
+	"github.com/tjfoc/gmsm/gmtls"
 	"io"
 	"os"
 	"os/signal"
@@ -75,7 +76,23 @@ func (t *Terminal) init() error {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         5 * time.Second,
 	}
-	t.sshCli, err = ssh.Dial(t.network, t.addr, sshConfig)
+
+	//conn, err := net.DialTimeout(t.network, t.addr, sshConfig.Timeout)
+	//if err != nil {
+	//	return err
+	//}
+
+	conn, err := gmtls.Dial(t.network, t.addr, server.GetTlsConfig())
+	if err != nil {
+		return err
+	}
+
+	c, chans, reqs, err := ssh.NewClientConn(conn, t.addr, sshConfig)
+	if err != nil {
+		return err
+	}
+
+	t.sshCli = ssh.NewClient(c, chans, reqs)
 	if err != nil {
 		return fmt.Errorf("创建命令转发通道失败: %s", err.Error())
 	}

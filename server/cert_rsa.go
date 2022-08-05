@@ -8,7 +8,9 @@ import (
 	"github.com/tjfoc/gmsm/x509"
 )
 
-func getTlsConfig() *gmtls.Config {
+var tlsConfig *gmtls.Config
+
+func init() {
 	pair, err := gmtls.X509KeyPair(clientPemCert, clientPemKey)
 	if err != nil {
 		errors.ExitTlsConfig.Println("解析通信证书失败: %s", err.Error())
@@ -17,12 +19,15 @@ func getTlsConfig() *gmtls.Config {
 	pool := x509.NewCertPool()
 	pool.AppendCertsFromPEM(rootPemCert)
 
-	return &gmtls.Config{
+	tlsConfig = &gmtls.Config{
 		Certificates:       []gmtls.Certificate{pair},
 		ClientAuth:         gmtls.RequireAndVerifyClientCert,
 		RootCAs:            pool,
 		InsecureSkipVerify: false,
 		ServerName:         hostname,
 	}
+}
 
+func GetTlsConfig() *gmtls.Config {
+	return tlsConfig
 }
