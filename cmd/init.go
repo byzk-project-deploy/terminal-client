@@ -72,6 +72,10 @@ func init() {
 	cmdmodel.Registry(cmdmodel.ModelPlugin, &cmdmodel.ModelInfo{
 		Commands: pluginCommands,
 	})
+
+	cmdmodel.Registry(cmdmodel.ModelServer, &cmdmodel.ModelInfo{
+		Commands: serverCommands,
+	})
 }
 
 func Run() {

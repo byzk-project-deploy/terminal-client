@@ -25,11 +25,12 @@ var clientPemKey []byte
 var infoMap = make(map[string]*Info, 8)
 
 type Info struct {
-	name    string
-	alias   string
-	network string
-	address string
-	conn    net.Conn
+	name      string
+	alias     string
+	network   string
+	address   string
+	conn      net.Conn
+	tlsConfig *gmtls.Config
 }
 
 func (s *Info) Name() string {
@@ -37,18 +38,27 @@ func (s *Info) Name() string {
 }
 
 func (s *Info) ConnToStream() (*transport_stream.Stream, error) {
-	if s.conn != nil {
-		s.conn.Close()
-	}
-	//conn, err := net.Dial(s.network, s.address)
-	conn, err := gmtls.Dial(s.network, s.address, GetTlsConfig())
+	s.Close()
+
+	//if s.tlsConfig == nil {
+	//	s.tlsConfig = GetTlsConfig()
+	//}
+
+	var err error
+	s.conn, err = gmtls.Dial(s.network, s.address, s.tlsConfig)
 	if err != nil {
+		s.conn = nil
 		return nil, fmt.Errorf("打开服务[%s]失败, 错误信息: %s", s.name, err.Error())
 	}
 
-	s.conn = conn
 	rw := bufio.NewReadWriter(bufio.NewReader(s.conn), bufio.NewWriter(s.conn))
 	return transport_stream.NewStream(rw), nil
+}
+
+func (s *Info) Close() {
+	if s.conn != nil {
+		_ = s.conn.Close()
+	}
 }
 
 var (
@@ -78,6 +88,13 @@ func NewServerInfo(name string) *Info {
 		network: network,
 		address: address,
 	}
+
+	if info.network == "unix" {
+		info.tlsConfig = GetTlsConfig()
+	} else {
+		_, _ = GeneratorTlsClientConfig("")
+	}
+
 	infoMap[name] = info
 	return info
 }

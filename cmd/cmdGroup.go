@@ -13,6 +13,7 @@ var (
 		callCommand,
 		historyCmd,
 		pluginConvertCmd,
+		remoteServerConvertCmd,
 		{
 			Name: "exit",
 			Help: "退出bypt工具",
@@ -30,5 +31,18 @@ var (
 		pluginListCmd,
 		pluginInfoCmd,
 		modelExitCmd,
+		historyCmd,
+	}
+
+	// serverCommands 远程服务命令
+	serverCommands = []*grumble.Command{
+		remoteServerJoinCmd,
+		remoteServerListCmd,
+		remoteServerInfoCmd,
+		remoteServerPasswordUpdateCmd,
+		remoteServerAliasUpdateCmd,
+		remoteServerRemoveCmd,
+		modelExitCmd,
+		historyCmd,
 	}
 )

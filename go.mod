@@ -7,10 +7,10 @@ require (
 	github.com/byzk-project-deploy/base-interface v0.0.0-20220730184505-463916a55621
 	github.com/byzk-project-deploy/grumble v1.1.4-0.20220805015256-ede33d7a97bf
 	github.com/byzk-project-deploy/packaging-plugin v0.0.0-20220731080505-bf55ec9ed188
-	github.com/byzk-project-deploy/server-client-common v0.0.0-20220804113830-725372377f1e
+	github.com/byzk-project-deploy/server-client-common v0.0.0-20220812093640-905f25ea3357
 	github.com/fatih/color v1.13.0
 	github.com/fsnotify/fsnotify v1.5.4
-	github.com/go-base-lib/transport-stream v0.0.0-20220726090446-571c4f243d92
+	github.com/go-base-lib/transport-stream v0.0.0-20220811074642-ab12339bdc21
 	github.com/gosuri/uitable v0.0.4
 	github.com/spf13/viper v1.12.0
 	github.com/tjfoc/gmsm v1.4.1
@@ -19,6 +19,7 @@ require (
 )
 
 require (
+	github.com/akrennmair/slice v0.0.0-20220105203817-49445747ab81 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
 	github.com/byzk-project-deploy/promptui v0.0.0-20220805015105-d041a40d328b // indirect
 	github.com/byzk-project-deploy/readline v1.5.2-0.20220805003149-36f86cdb5dd2 // indirect

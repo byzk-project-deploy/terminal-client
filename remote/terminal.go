@@ -72,6 +72,7 @@ func (t *Terminal) init() error {
 		User: t.user,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(t.password),
+			ssh.PublicKeys(),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         5 * time.Second,
