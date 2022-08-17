@@ -29,10 +29,3 @@ func PromptPassword(label string) *promptui.Prompt {
 		Mask: '*',
 	}
 }
-
-func PromptConfirm(label string) *promptui.Prompt {
-	return &promptui.Prompt{
-		Label:     label,
-		IsConfirm: true,
-	}
-}

@@ -79,5 +79,5 @@ var Stdin = &stdinWrapper{
 }
 
 func init() {
-	go Stdin.loop()
+	//go Stdin.loop()
 }

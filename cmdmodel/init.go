@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/byzk-project-deploy/grumble"
-	"github.com/byzk-project-deploy/terminal-client/stdio"
 	"github.com/fatih/color"
 )
 
@@ -49,7 +48,7 @@ func InitApp(currentModelName ModelName, historyFile string) {
 		HelpHeadlineColor:     color.New(color.FgGreen),
 		HelpHeadlineUnderline: true,
 		HelpSubCommands:       true,
-		Stdin:                 stdio.Stdin,
+		Stdin:                 os.Stdin,
 	})
 
 	currentApp.SetInterruptHandler(func(a *grumble.App, count int) {

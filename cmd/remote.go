@@ -3,15 +3,20 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"github.com/akrennmair/slice"
 	"github.com/byzk-project-deploy/grumble"
 	serverclientcommon "github.com/byzk-project-deploy/server-client-common"
 	"github.com/byzk-project-deploy/terminal-client/cmdmodel"
 	"github.com/byzk-project-deploy/terminal-client/server"
+	"github.com/byzk-project-deploy/terminal-client/user"
 	"github.com/byzk-project-deploy/terminal-client/utils"
 	"github.com/fatih/color"
 	transportstream "github.com/go-base-lib/transport-stream"
 	"github.com/gosuri/uitable"
+	"github.com/pterm/pterm"
 	"golang.org/x/exp/slices"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -172,11 +177,11 @@ var (
 				case serverclientcommon.ServerStatusNeedInstall:
 					statusText = color.RedString("未安装主程序")
 				case serverclientcommon.ServerStatusNetworkErr:
-					statusText = color.RedString("网络错误")
+					statusText = color.RedString("连接失败")
 				case serverclientcommon.ServerStatusNoRun:
-					statusText = color.YellowString("未启动")
+					statusText = color.YellowString("未连接")
 				case serverclientcommon.ServerRunning:
-					statusText = color.GreenString("已启动")
+					statusText = color.GreenString("已连接")
 				}
 
 				table.AddRow(serverInfo.Id, port, strings.Join(serverInfo.Alias, ","), serverInfo.SSHUser, utils.TimeFormat(serverInfo.JoinTime), statusText, serverInfo.EndMsg)
@@ -240,11 +245,11 @@ var (
 			case serverclientcommon.ServerStatusNeedInstall:
 				statusText = color.RedString("未安装主程序")
 			case serverclientcommon.ServerStatusNetworkErr:
-				statusText = color.RedString("网络错误")
+				statusText = color.RedString("连接失败")
 			case serverclientcommon.ServerStatusNoRun:
-				statusText = color.YellowString("未启动")
+				statusText = color.YellowString("未连接")
 			case serverclientcommon.ServerRunning:
-				statusText = color.GreenString("已启动")
+				statusText = color.GreenString("已连接")
 			}
 
 			portStr := ""
@@ -397,12 +402,10 @@ var (
 			for i := range serverNameList {
 				sn := serverNameList[i]
 				if !confirm {
-					if _, err = c.ShellTools.Prompt(utils.PromptConfirm("确认删除 " + sn)); err != nil {
-						if err.Error() == "" {
-							continue
-						}
+					if ok, err := c.ShellTools.Confirm("确认删除 " + sn); err != nil {
 						c.App.PrintError(fmt.Errorf("操作被取消"))
-						return nil
+					} else if !ok {
+						continue
 					}
 				}
 
@@ -413,7 +416,371 @@ var (
 			return nil
 		},
 	}
+
+	// remoteServerRepairCmd 服务修复命令
+	remoteServerRepairCmd = &grumble.Command{
+		Name: "repair",
+		Help: "尝试自动修复有问题的远程服务",
+		Run: func(c *grumble.Context) error {
+			unixServerInfo := server.NewUnixServerInfo()
+			defer unixServerInfo.Close()
+
+			stream, err := unixServerInfo.ConnToStream()
+			if err != nil {
+				return err
+			}
+
+			resData, err := serverclientcommon.CmdRemoteServerRepair.Exchange(stream)
+			if err != nil {
+				return err
+			}
+
+			var repairResultList []*serverclientcommon.RemoteServerRepairResInfo
+			if err = resData.UnmarshalJson(&repairResultList); err != nil {
+				return fmt.Errorf("转换修复结果信息失败: %s", err.Error())
+			}
+
+			for i := range repairResultList {
+				repairResult := repairResultList[i]
+				if !repairResult.Success {
+					c.App.PrintError(fmt.Errorf("服务器[%s]修复失败: %s", repairResult.Ip, repairResult.ErrMsg))
+				}
+			}
+
+			return nil
+		},
+	}
+
+	// remoteServerUploadCmd 远程服务文件上传命令
+	remoteServerUploadCmd = &grumble.Command{
+		Name: "upload",
+		Help: "上传文件或目录到远程服务器中",
+		Usage: `
+[上传本地文件或目录到所有的服务器上]
+upload /home/test/a.txt ~/a.txt
+
+[上传本地文件到指定服务器]
+upload -s 192.168.100.2,192.168.100.3 /home/test/a.txt ~/a.txt
+
+[上传本地文件到服务器不同的目录地址]
+upload /home/test/a.txt 192.168.100.2@192.168.100.2
+
+[上传本地文件到服务器, 个别服务器路径与其他不同]
+upload /home/test/a.txt ~/a.txt 192.168.3@~/home/a.txt
+
+[将远程服务器中的文件上传到除原始服务器之外的其他服务器上]
+upload 192.168.100.2@~/a.txt ~/a.txt
+`,
+		Completer: func(prefix string, args []string) (res []string) {
+			res = remoteServerNameListByPrefixAndExclude(prefix, args)
+			res = slice.Map(res, func(t1 string) string {
+				return t1 + "@"
+			})
+			argsLen := len(args)
+			if argsLen > 0 {
+				return
+			}
+
+			if prefix == "" {
+				prefix = server.CurrentPath()
+			}
+
+			if strings.ContainsRune(prefix, '@') {
+				return
+			}
+
+			prefix = getRealFilePath(prefix)
+
+			dirname := filepath.Dir(prefix)
+			stat, err := os.Stat(dirname)
+			if err != nil || !stat.IsDir() {
+				return
+			}
+
+			filename := filepath.Base(prefix)
+			if strings.HasSuffix(prefix, "/") {
+				filename = ""
+			}
+			childFiles, err := os.ReadDir(dirname)
+			if err != nil {
+				return
+			}
+
+			for i := range childFiles {
+				f := childFiles[i]
+				if strings.HasPrefix(f.Name(), filename) && f.Name() != filename {
+					res = append(res, f.Name()[len(filename):])
+				}
+			}
+
+			return
+		},
+		Flags: func(f *grumble.Flags) {
+			f.Uint("t", "type", 0, "上传的通道类型: 0: ssh+ftp")
+			f.Bool("r", "recursive", false, "递归上传")
+			f.String("s", "includeServer", "", "要上传到的服务器名称,可以是服务器的ip或别名, 多个服务ip器或别名使用逗号隔开, 优先级大于排除")
+			f.String("e", "excludeServer", "", "排除的服务器名称, 可以是服务器的ip或别名, 多个服务器ip或别名使用逗号分割")
+		},
+		Args: func(a *grumble.Args) {
+			a.String("sourceFile", "原始文件或目录, 格式为: /home/text.txt 或 192.168.100.218@/home/test/a.txt, 可以是文件或目录, 当为目录时必须携带 -r 参数")
+			a.StringList("targetFile", "目标文件名称", grumble.Min(1))
+		},
+		Run: func(c *grumble.Context) (err error) {
+			var (
+				uploadType    = serverclientcommon.UploadType(uint8(c.Flags.Uint("type")))
+				recursive     = c.Flags.Bool("recursive")
+				includeServer []string
+				excludeServer []string
+
+				targetFileOrDirList = c.Args.StringList("targetFile")
+				sourceFileOrDir     = c.Args.String("sourceFile")
+
+				sourceAddr     *serverclientcommon.UploadAddrInfo
+				targetAddrList []*serverclientcommon.UploadAddrInfo
+
+				serverListExchangeData serverclientcommon.ExchangeData
+				serverList             []*serverclientcommon.ServerInfo
+			)
+
+			includeServerFlag := c.Flags.String("includeServer")
+			excludeServerFlag := c.Flags.String("excludeServer")
+			if includeServerFlag != "" {
+				includeServer = strings.Split(includeServerFlag, ",")
+			}
+
+			if excludeServerFlag != "" {
+				excludeServer = strings.Split(excludeServerFlag, ",")
+			}
+
+			if uploadType < serverclientcommon.UploadTypeSSHFtp || uploadType >= serverclientcommon.UploadUnknown {
+				return fmt.Errorf("不支持的上传类型")
+			}
+
+			if sourceAddr, err = uploadPathConvertToUploadAddrInfo(sourceFileOrDir); err != nil {
+				return
+			}
+
+			if strings.HasSuffix(sourceAddr.Path, "/") {
+				return fmt.Errorf("不支持路径以 / 结尾")
+			}
+
+			if len(targetFileOrDirList) == 0 {
+				return fmt.Errorf("缺失目标路径")
+			}
+
+			unixServerInfo := server.NewUnixServerInfo()
+			defer unixServerInfo.Close()
+
+			stream, err := unixServerInfo.ConnToStream()
+			if err != nil {
+				return
+			}
+			defer stream.WriteEndMsg()
+
+			if serverListExchangeData, err = serverclientcommon.CmdRemoteServerList.ExchangeWithData(nil, stream); err != nil {
+				return
+			}
+
+			if err = serverListExchangeData.UnmarshalJson(&serverList); err != nil {
+				return
+			}
+
+			serverListLen := len(serverList)
+			if serverListLen == 0 {
+				return fmt.Errorf("未查询到已存在的服务器信息, 请先添加服务器信息")
+			}
+
+			serverNameList := make([]string, 0, serverListLen)
+			for i := range serverList {
+				serverInfo := serverList[i]
+				serverNameList = append(serverNameList, serverInfo.Id)
+				serverNameList = append(serverNameList, serverInfo.Alias...)
+			}
+
+			if sourceAddr.Server != "" && !slices.Contains(serverNameList, sourceAddr.Server) {
+				return fmt.Errorf("不存在的服务器[%s]", sourceAddr.Server)
+			}
+
+			isHaveInclude := len(excludeServer) > 0
+			globalUploadPathList := make([]string, 0, 8)
+			targetAddrList = make([]*serverclientcommon.UploadAddrInfo, 0, serverListLen)
+			for _, targetPath := range targetFileOrDirList {
+				if strings.HasSuffix(targetPath, "/") {
+					return fmt.Errorf("不支持路径以 / 结尾")
+				}
+				if !strings.Contains(targetPath, "@") {
+					globalUploadPathList = append(globalUploadPathList, targetPath)
+					continue
+				}
+
+				targetFlags := strings.Split(targetPath, "@")
+				if len(targetFlags) != 2 {
+					return fmt.Errorf("错误的目标地址格式: %s", targetPath)
+				}
+
+				if !slices.Contains(serverNameList, targetFlags[0]) {
+					return fmt.Errorf("不存在的服务器IP或名称: %s", targetFlags[0])
+				}
+
+				if isHaveInclude && !slices.Contains(includeServer, targetFlags[0]) {
+					return fmt.Errorf("地址[%s]不再白名单内", targetPath)
+				}
+
+				serverList = slice.Filter(serverList, func(s *serverclientcommon.ServerInfo) bool {
+					return s.Id == targetFlags[0] || slices.Contains(s.Alias, targetFlags[0])
+				})
+
+				targetAddrList = append(targetAddrList, &serverclientcommon.UploadAddrInfo{
+					Server: targetFlags[0],
+					Path:   targetFlags[1],
+				})
+			}
+
+			isHaveExclude := len(excludeServer) > 0
+			if len(globalUploadPathList) > 0 {
+				for i := range serverList {
+					serverInfo := serverList[i]
+
+					if isHaveInclude && slices.IndexFunc(includeServer, func(n string) bool {
+						return n == serverInfo.Id || slices.Contains(includeServer, n)
+					}) == 0 {
+						continue
+					}
+
+					if isHaveExclude && slices.IndexFunc(includeServer, func(n string) bool {
+						return n == serverInfo.Id || slices.Contains(includeServer, n)
+					}) > 0 {
+						continue
+					}
+
+					for _, p := range globalUploadPathList {
+						targetAddrList = append(targetAddrList, &serverclientcommon.UploadAddrInfo{
+							Server: serverInfo.Id,
+							Path:   p,
+						})
+					}
+				}
+			}
+
+			if len(targetAddrList) == 0 {
+				return fmt.Errorf("缺失目标地址")
+			}
+
+			if err = serverclientcommon.CmdRemoteServerFileUpload.SendCommand(stream); err != nil {
+				return
+			}
+
+			if err = stream.WriteJsonMsg(&serverclientcommon.RemoteServerUploadRequest{
+				Recursive:      recursive,
+				Include:        includeServer,
+				Exclude:        excludeServer,
+				SourceAddr:     sourceAddr,
+				TargetAddrList: targetAddrList,
+				UploadType:     uploadType,
+			}); err != nil {
+				return
+			}
+
+			if _, err = stream.ReceiveMsg(); err != nil {
+				return
+			}
+
+			if err = stream.WriteMsg(nil, transportstream.MsgFlagSuccess); err != nil {
+				return
+			}
+
+			var (
+				nowUploadFilename serverclientcommon.ExchangeData
+			)
+
+			for {
+				if nowUploadFilename, err = stream.ReceiveMsg(); err != nil {
+					if err == transportstream.StreamIsEnd {
+						return nil
+					}
+					return fmt.Errorf("获取正在上传的文件信息失败")
+				}
+
+				if err = stream.WriteMsg(nil, transportstream.MsgFlagSuccess); err != nil {
+					return
+				}
+
+				if err = uploadProgress(nowUploadFilename, stream); err != nil {
+					return
+				}
+			}
+		},
+	}
 )
+
+func uploadProgress(filename serverclientcommon.ExchangeData, stream *transportstream.Stream) (err error) {
+	var uploadResponse *serverclientcommon.RemoteServerUploadResponse
+
+	p, _ := pterm.DefaultProgressbar.WithTotal(100).WithTitle(fmt.Sprintf("正在上传文件: %s", filename)).WithRemoveWhenDone(true).Start()
+	defer p.Stop()
+	for {
+		if err = stream.ReceiveJsonMsg(&uploadResponse); err != nil {
+			return
+		}
+
+		if !uploadResponse.Success {
+			pterm.Error.Printfln(uploadResponse.ErrMsg)
+			continue
+		}
+
+		if uploadResponse.End {
+			pterm.Success.Printfln("文件[%s]上传成功", filename)
+			_, _ = p.Stop()
+			break
+		}
+
+		progress := uploadResponse.Progress
+		addCount := progress - p.Current
+		if addCount <= 0 {
+			continue
+		}
+
+		if p.Current+addCount >= 100 {
+			addCount = 99 - p.Current
+		}
+
+		p.Add(addCount)
+	}
+	return nil
+}
+
+func uploadPathConvertToUploadAddrInfo(p string) (sourceAddr *serverclientcommon.UploadAddrInfo, err error) {
+	if strings.Contains(p, "@") {
+		serverAddrArr := strings.Split(p, "@")
+		if len(serverAddrArr) != 2 {
+			return nil, fmt.Errorf("不符合规范的地址, 如果是务器文件路径格式参照: 服务器IP/别名@服务器上的文件地址")
+		}
+		sourceAddr = &serverclientcommon.UploadAddrInfo{
+			Server: serverAddrArr[0],
+			Path:   serverAddrArr[1],
+		}
+	} else {
+		sourceAddr = &serverclientcommon.UploadAddrInfo{
+			Path: getRealFilePath(p),
+		}
+	}
+	return sourceAddr, nil
+}
+
+func getRealFilePath(p string) string {
+	if strings.ContainsRune(p, '~') {
+		currentUser := user.Current()
+		homeDir := currentUser.HomeDir
+		p = strings.ReplaceAll(p, "~", homeDir)
+	}
+
+	if p[0] != '/' {
+		currentPath := server.CurrentPath()
+		p = filepath.Join(currentPath)
+	}
+
+	return p
+}
 
 func remoteServerNameListByPrefixAndExclude(prefix string, excludeList []string) []string {
 	return remoteServerAllNameList(true, prefix, excludeList)

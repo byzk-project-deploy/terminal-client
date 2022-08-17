@@ -5,9 +5,9 @@ go 1.18
 require (
 	github.com/briandowns/spinner v1.18.1
 	github.com/byzk-project-deploy/base-interface v0.0.0-20220730184505-463916a55621
-	github.com/byzk-project-deploy/grumble v1.1.4-0.20220805015256-ede33d7a97bf
+	github.com/byzk-project-deploy/grumble v1.1.4-0.20220815065320-c9e665cee932
 	github.com/byzk-project-deploy/packaging-plugin v0.0.0-20220731080505-bf55ec9ed188
-	github.com/byzk-project-deploy/server-client-common v0.0.0-20220812093640-905f25ea3357
+	github.com/byzk-project-deploy/server-client-common v0.0.0-20220817060510-d86655aea570
 	github.com/fatih/color v1.13.0
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/go-base-lib/transport-stream v0.0.0-20220811074642-ab12339bdc21
@@ -19,22 +19,29 @@ require (
 )
 
 require (
+	atomicgo.dev/cursor v0.1.1 // indirect
+	atomicgo.dev/keyboard v0.2.8 // indirect
 	github.com/akrennmair/slice v0.0.0-20220105203817-49445747ab81 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
 	github.com/byzk-project-deploy/promptui v0.0.0-20220805015105-d041a40d328b // indirect
 	github.com/byzk-project-deploy/readline v1.5.2-0.20220805003149-36f86cdb5dd2 // indirect
+	github.com/containerd/console v1.0.3 // indirect
 	github.com/gliderlabs/ssh v0.3.4 // indirect
 	github.com/go-base-lib/coderutils v0.0.0-20220728101957-faf9884c898b // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/gookit/color v1.5.0 // indirect
 	github.com/hashicorp/go-hclog v1.2.0 // indirect
 	github.com/hashicorp/go-plugin v1.4.4 // indirect
 	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
+	github.com/lithammer/fuzzysearch v1.1.5 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77 // indirect
 	github.com/oklog/run v1.0.0 // indirect
+	github.com/pterm/pterm v0.12.45 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
+	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
 	google.golang.org/grpc v1.46.2 // indirect
