@@ -44,6 +44,7 @@ var (
 		remoteServerRemoveCmd,
 		remoteServerRepairCmd,
 		remoteServerUploadCmd,
+		remoteServerDownloadCmd,
 		modelExitCmd,
 		historyCmd,
 	}

@@ -7,10 +7,10 @@ require (
 	github.com/byzk-project-deploy/base-interface v0.0.0-20220730184505-463916a55621
 	github.com/byzk-project-deploy/grumble v1.1.4-0.20220815065320-c9e665cee932
 	github.com/byzk-project-deploy/packaging-plugin v0.0.0-20220731080505-bf55ec9ed188
-	github.com/byzk-project-deploy/server-client-common v0.0.0-20220817060510-d86655aea570
+	github.com/byzk-project-deploy/server-client-common v0.0.0-20220817085252-a2f79566a83d
 	github.com/fatih/color v1.13.0
 	github.com/fsnotify/fsnotify v1.5.4
-	github.com/go-base-lib/transport-stream v0.0.0-20220811074642-ab12339bdc21
+	github.com/go-base-lib/transport-stream v0.0.0-20220817085119-03136fb70ffd
 	github.com/gosuri/uitable v0.0.4
 	github.com/spf13/viper v1.12.0
 	github.com/tjfoc/gmsm v1.4.1

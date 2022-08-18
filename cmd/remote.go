@@ -15,6 +15,8 @@ import (
 	"github.com/gosuri/uitable"
 	"github.com/pterm/pterm"
 	"golang.org/x/exp/slices"
+	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -553,7 +555,7 @@ upload 192.168.100.2@~/a.txt ~/a.txt
 			}
 
 			if uploadType < serverclientcommon.UploadTypeSSHFtp || uploadType >= serverclientcommon.UploadUnknown {
-				return fmt.Errorf("不支持的上传类型")
+				return fmt.Errorf("不支持的传输协议类型")
 			}
 
 			if sourceAddr, err = uploadPathConvertToUploadAddrInfo(sourceFileOrDir); err != nil {
@@ -711,7 +713,192 @@ upload 192.168.100.2@~/a.txt ~/a.txt
 			}
 		},
 	}
+
+	// remoteServerDownloadCmd 远程服务器文件或目录下载
+	remoteServerDownloadCmd = &grumble.Command{
+		Name: "download",
+		Help: "下载远程文件到本地",
+		Completer: func(prefix string, args []string) (res []string) {
+			argsLen := len(args)
+			if argsLen == 0 {
+				if prefix == "" {
+					prefix = server.CurrentPath() + "/"
+				}
+
+				prefix = getRealFilePath(prefix)
+
+				dirname := filepath.Dir(prefix)
+				stat, err := os.Stat(dirname)
+				if err != nil || !stat.IsDir() {
+					return
+				}
+
+				filename := filepath.Base(prefix)
+				if strings.HasSuffix(prefix, "/") {
+					filename = ""
+				}
+				childFiles, err := os.ReadDir(dirname)
+				if err != nil {
+					return
+				}
+
+				for i := range childFiles {
+					f := childFiles[i]
+					if strings.HasPrefix(f.Name(), filename) && f.Name() != filename {
+						res = append(res, f.Name()[len(filename):])
+					}
+				}
+				return
+			}
+
+			res = remoteServerNameListByPrefixAndExclude(prefix, args)
+			res = slice.Map(res, func(t1 string) string {
+				return t1 + "@"
+			})
+			return
+		},
+		Args: func(a *grumble.Args) {
+			a.String("saveDir", "保存到本地的哪个目录, 如果不存在该目录将会创建")
+			a.StringList("remoteAddr", "远程服务器及文件地址, 格式: 服务器IP/别名@路径", grumble.Min(1))
+		},
+		Flags: func(f *grumble.Flags) {
+			f.Uint("t", "type", 0, "上传的通道类型: 0: ssh+ftp")
+		},
+		Run: func(c *grumble.Context) error {
+			var (
+				saveDir           = c.Args.String("saveDir")
+				remoteAddrStrList = c.Args.StringList("remoteAddr")
+
+				protoType = serverclientcommon.UploadType(uint8(c.Flags.Uint("type")))
+			)
+
+			if protoType < serverclientcommon.UploadTypeSSHFtp || protoType >= serverclientcommon.UploadUnknown {
+				return fmt.Errorf("不支持的传输协议类型")
+			}
+
+			saveDir = getRealFilePath(saveDir)
+			if strings.HasSuffix(saveDir, "/") {
+				return fmt.Errorf("不支持路径以 / 结尾")
+			}
+
+			unixServerInfo := server.NewUnixServerInfo()
+			defer unixServerInfo.Close()
+
+			stream, err := unixServerInfo.ConnToStream()
+			if err != nil {
+				return err
+			}
+
+			_ = os.MkdirAll(saveDir, 0755)
+
+			for i := range remoteAddrStrList {
+				addStr := remoteAddrStrList[i]
+				if err = remoteDownloadHandle(addStr, protoType, saveDir, stream); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		},
+	}
 )
+
+func remoteDownloadHandle(addr string, protoType serverclientcommon.UploadType, savedir string, stream *transportstream.Stream) (err error) {
+	defer stream.WriteEndMsg()
+
+	var (
+		tBytes serverclientcommon.ExchangeData
+	)
+
+	if err = serverclientcommon.CmdRemoteServerFileDownload.SendCommand(stream); err != nil {
+		return err
+	}
+
+	if tBytes, err = transportstream.IntToBytes[uint8](uint8(protoType)); err != nil {
+		return err
+	} else if err = stream.WriteMsgStream(tBytes, transportstream.MsgFlagSuccess).
+		WriteMsgStream([]byte(addr), transportstream.MsgFlagSuccess).
+		Error(); err != nil {
+		return err
+	}
+
+	filenameExchangeData, err := stream.ReceiveMsg()
+	if err != nil {
+		return err
+	}
+
+	relativePathExchangeData, err := stream.ReceiveMsg()
+	if err != nil {
+		return err
+	}
+
+	fileSizeExchangeData, err := stream.ReceiveMsg()
+	if err != nil {
+		return err
+	}
+
+	filesize, err := transportstream.BytesToInt[int64](fileSizeExchangeData)
+	if err != nil {
+		return fmt.Errorf("转换文件的长度失败: %s", err.Error())
+	}
+
+	if err = stream.WriteMsg(nil, transportstream.MsgFlagSuccess); err != nil {
+		return err
+	}
+
+	filename := string(filenameExchangeData)
+
+	relativePath := string(relativePathExchangeData)
+	if relativePath == "" {
+		relativePath = filepath.Base(filename)
+	}
+
+	targetPath := filepath.Join(savedir, relativePath)
+	_ = os.MkdirAll(filepath.Dir(targetPath), 0755)
+	f, err := os.OpenFile(targetPath, os.O_WRONLY|os.O_CREATE, 0655)
+	if err != nil {
+		return fmt.Errorf("创建本地文件[%s]失败: %s", targetPath, err.Error())
+	}
+	defer f.Close()
+
+	p, _ := pterm.DefaultProgressbar.WithTotal(100).WithTitle(fmt.Sprintf("正在下载文件: %s", filepath.Join(addr, string(relativePathExchangeData)))).WithRemoveWhenDone(true).Start()
+	defer p.Stop()
+
+	var (
+		d       serverclientcommon.ExchangeData
+		okCount = 0
+	)
+	for {
+		d, err = stream.ReceiveMsg()
+		if err == transportstream.StreamIsEnd {
+			break
+		}
+
+		if err == io.EOF {
+			return fmt.Errorf("传输流异常关闭")
+		}
+
+		if err != nil {
+			return fmt.Errorf("文件传输发生错误: %s", err.Error())
+		}
+
+		okCount += len(d)
+		targetPercentage := int(math.Floor(float64(okCount) / float64(filesize) * 100))
+		addPercentage := targetPercentage - p.Current
+
+		if p.Current+addPercentage > 99 {
+			addPercentage = 99 - p.Current
+		}
+
+		_ = p.Add(addPercentage)
+
+		if _, err = f.Write(d); err != nil {
+			return fmt.Errorf("写出内容到文件[%s]失败: %s", targetPath, err.Error())
+		}
+	}
+	pterm.Success.Printfln("服务器文件[%s]成功保存至: %s", addr, targetPath)
+	return nil
+}
 
 func uploadProgress(filename serverclientcommon.ExchangeData, stream *transportstream.Stream) (err error) {
 	var uploadResponse *serverclientcommon.RemoteServerUploadResponse
@@ -776,7 +963,7 @@ func getRealFilePath(p string) string {
 
 	if p[0] != '/' {
 		currentPath := server.CurrentPath()
-		p = filepath.Join(currentPath)
+		p = filepath.Join(currentPath, p)
 	}
 
 	return p
