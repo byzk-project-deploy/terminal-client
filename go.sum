@@ -61,6 +61,10 @@ github.com/briandowns/spinner v1.18.1 h1:yhQmQtM1zsqFsouh09Bk/jCjd50pC3EOGsh28gL
 github.com/briandowns/spinner v1.18.1/go.mod h1:mQak9GHqbspjC/5iUx3qMlIho8xBS/ppAL/hX5SmPJU=
 github.com/byzk-project-deploy/base-interface v0.0.0-20220730184505-463916a55621 h1:gOi0/nHRoaOv4U/K62x+cty5nakO7jjQS0+dp1+dlNw=
 github.com/byzk-project-deploy/base-interface v0.0.0-20220730184505-463916a55621/go.mod h1:uCWkxs5yhSdG4aQ7PcVVqrlOz/Oed2DdIooIMt9ioJI=
+github.com/byzk-project-deploy/base-interface v0.0.0-20220804063912-57ae365061b1 h1:6blz8jYy35itxwpA+HYFwoxEaFpOMva0epuCWCfHGbI=
+github.com/byzk-project-deploy/base-interface v0.0.0-20220804063912-57ae365061b1/go.mod h1:bmx/9ng2LfMr4E906hksnXBqBJE/Sf7KusTRadJk0+U=
+github.com/byzk-project-deploy/go-plugin v0.0.0-20220804063707-b9a65653fc49 h1:yXyhx+34GtR2qYLdM3CZCFdRZ5T9cSBHhuOL+F1AkhE=
+github.com/byzk-project-deploy/go-plugin v0.0.0-20220804063707-b9a65653fc49/go.mod h1:q85Q8wMlHdh2G0mpwSPgnPwH+iC17lWgCjzk7BlIj1I=
 github.com/byzk-project-deploy/grumble v1.1.4-0.20220803060327-cbfbabc29ae1 h1:0DyXsrn44qlYkr5Ho/RWZKhIaNlJPpMxnDE5XN5ILto=
 github.com/byzk-project-deploy/grumble v1.1.4-0.20220803060327-cbfbabc29ae1/go.mod h1:Hw2Jk7aeOQl5kaVzURTnCYYEafOkwZedix2I7VFNQbA=
 github.com/byzk-project-deploy/grumble v1.1.4-0.20220805010940-02d693a1c7e6 h1:7yYv+gN00JmXXz5Ar4b43KKwHy3bT/JtnUQDAASCRmc=
@@ -87,6 +91,8 @@ github.com/byzk-project-deploy/grumble v1.1.4-0.20220815065320-c9e665cee932 h1:3
 github.com/byzk-project-deploy/grumble v1.1.4-0.20220815065320-c9e665cee932/go.mod h1:o878RcaTAYBd5sVUnd91yb+bx9qgJh6/4kGi7orypro=
 github.com/byzk-project-deploy/packaging-plugin v0.0.0-20220731080505-bf55ec9ed188 h1:DruHjhgh277vK8JBzPREpt+1t4h9ameph0KTnTDqumU=
 github.com/byzk-project-deploy/packaging-plugin v0.0.0-20220731080505-bf55ec9ed188/go.mod h1:SmdNPDfuqJ+ausOWFYOueaRUBdGqk5XOpLhKGIqCYbU=
+github.com/byzk-project-deploy/packaging-plugin v0.0.0-20220822065851-86abe3085b7e h1:LNJsWdTtpKMpfK4MiBlpXKFwuKyerUOPfHfsHm8RFws=
+github.com/byzk-project-deploy/packaging-plugin v0.0.0-20220822065851-86abe3085b7e/go.mod h1:eW91p1skZbcm5gk5VMP4gk+15lDG/f5ZzFm77gFGNGc=
 github.com/byzk-project-deploy/promptui v0.0.0-20220805010552-f228631c1e22 h1:OEW2oSiFwdH+nwWdkW5E9LZfCoi2uXyVYyCeLrWa/tE=
 github.com/byzk-project-deploy/promptui v0.0.0-20220805010552-f228631c1e22/go.mod h1:utmPyM2fLT/Dfbx3srkCPS0wxUMYdre5/Co0Ed+zg0A=
 github.com/byzk-project-deploy/promptui v0.0.0-20220805013130-6f9858efa275 h1:fxDbzTBEolbhVw3gPTOLJGIPU+O/7gcNFJ/JniIvcIw=
@@ -154,6 +160,10 @@ github.com/byzk-project-deploy/server-client-common v0.0.0-20220817060510-d86655
 github.com/byzk-project-deploy/server-client-common v0.0.0-20220817060510-d86655aea570/go.mod h1:tpEmPA1P9qanR4qmmrOR3RCxXb7kaxT3N0eMbjo1rzo=
 github.com/byzk-project-deploy/server-client-common v0.0.0-20220817085252-a2f79566a83d h1:rE3uTL/EsSJWjbe8XX8EEQErSlIkihkn3N0ESYYuso4=
 github.com/byzk-project-deploy/server-client-common v0.0.0-20220817085252-a2f79566a83d/go.mod h1:OGWgQM0ExSd/ky5nq4epJ4mjFSffzXfSWudvbDKM0E4=
+github.com/byzk-project-deploy/server-client-common v0.0.0-20220824030431-c0429276becd h1:qMbloe1vG61dEt23At4NEgDZW2GJbSIGNk8TKxnGQts=
+github.com/byzk-project-deploy/server-client-common v0.0.0-20220824030431-c0429276becd/go.mod h1:OGWgQM0ExSd/ky5nq4epJ4mjFSffzXfSWudvbDKM0E4=
+github.com/byzk-project-deploy/server-client-common v0.0.0-20220824075115-b6bc9575ce99 h1:4aYWshxgSSqXB2m3mzY4OvIwp9rRVPQ/nmQgH6gA9FU=
+github.com/byzk-project-deploy/server-client-common v0.0.0-20220824075115-b6bc9575ce99/go.mod h1:OGWgQM0ExSd/ky5nq4epJ4mjFSffzXfSWudvbDKM0E4=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/chzyer/logex v1.1.10 h1:Swpa1K6QvQznwJRcfTfQJmTE72DqScAa40E+fbHEXEE=

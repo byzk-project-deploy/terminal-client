@@ -4,10 +4,10 @@ go 1.18
 
 require (
 	github.com/briandowns/spinner v1.18.1
-	github.com/byzk-project-deploy/base-interface v0.0.0-20220730184505-463916a55621
+	github.com/byzk-project-deploy/base-interface v0.0.0-20220804063912-57ae365061b1
 	github.com/byzk-project-deploy/grumble v1.1.4-0.20220815065320-c9e665cee932
-	github.com/byzk-project-deploy/packaging-plugin v0.0.0-20220731080505-bf55ec9ed188
-	github.com/byzk-project-deploy/server-client-common v0.0.0-20220817085252-a2f79566a83d
+	github.com/byzk-project-deploy/packaging-plugin v0.0.0-20220822065851-86abe3085b7e
+	github.com/byzk-project-deploy/server-client-common v0.0.0-20220824075115-b6bc9575ce99
 	github.com/fatih/color v1.13.0
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/go-base-lib/transport-stream v0.0.0-20220817085119-03136fb70ffd
@@ -23,6 +23,7 @@ require (
 	atomicgo.dev/keyboard v0.2.8 // indirect
 	github.com/akrennmair/slice v0.0.0-20220105203817-49445747ab81 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
+	github.com/byzk-project-deploy/go-plugin v0.0.0-20220804063707-b9a65653fc49 // indirect
 	github.com/byzk-project-deploy/promptui v0.0.0-20220805015105-d041a40d328b // indirect
 	github.com/byzk-project-deploy/readline v1.5.2-0.20220805003149-36f86cdb5dd2 // indirect
 	github.com/containerd/console v1.0.3 // indirect

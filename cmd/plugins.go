@@ -11,7 +11,8 @@ import (
 	"github.com/byzk-project-deploy/terminal-client/utils"
 	"github.com/fatih/color"
 	"github.com/gosuri/uitable"
-	"io/ioutil"
+	"github.com/pterm/pterm"
+	"golang.org/x/exp/slices"
 	"os"
 	"path/filepath"
 	"strings"
@@ -129,6 +130,96 @@ var (
 		},
 	}
 
+	// pluginUninstallCmd 插件卸载
+	pluginUninstallCmd = &grumble.Command{
+		Name:      "uninstall",
+		Help:      "卸载插件",
+		Completer: pluginIdOrNameCompleter,
+		Args: func(a *grumble.Args) {
+			a.StringList("plugins", "插件ID或名称", grumble.Min(1))
+		},
+		Run: func(c *grumble.Context) error {
+			pluginFlags := c.Args.StringList("plugins")
+
+			unixServerInfo := server.NewUnixServerInfo()
+			defer unixServerInfo.Close()
+
+			stream, err := unixServerInfo.ConnToStream()
+			if err != nil {
+				return err
+			}
+
+			for i := range pluginFlags {
+				name := pluginFlags[i]
+				if _, err = serverclientcommon.CmdPluginUninstall.ExchangeWithData(name, stream); err != nil {
+					pterm.Error.Printfln("删除插件[%s]失败: %s", name, err.Error())
+				}
+			}
+
+			return nil
+		},
+	}
+
+	// pluginEnabledCmd 启用插件
+	pluginEnabledCmd = &grumble.Command{
+		Name:      "enabled",
+		Help:      "启用插件",
+		Completer: pluginIdOrNameCompleter,
+		Args: func(a *grumble.Args) {
+			a.StringList("plugins", "插件列表", grumble.Min(1))
+		},
+		Run: func(c *grumble.Context) error {
+			pluginList := c.Args.StringList("plugins")
+
+			unixServerInfo := server.NewUnixServerInfo()
+			defer unixServerInfo.Close()
+
+			stream, err := unixServerInfo.ConnToStream()
+			if err != nil {
+				return err
+			}
+
+			for i := range pluginList {
+				p := pluginList[i]
+				if _, err = serverclientcommon.CmdPluginEnabled.ExchangeWithData(p, stream); err != nil {
+					pterm.Error.Printfln("启用插件[%s]失败: %s", p, err.Error())
+				}
+			}
+
+			return nil
+		},
+	}
+
+	// pluginDisabledCmd 禁用插件
+	pluginDisabledCmd = &grumble.Command{
+		Name:      "disabled",
+		Help:      "禁用插件",
+		Completer: pluginIdOrNameCompleter,
+		Args: func(a *grumble.Args) {
+			a.StringList("plugins", "插件列表", grumble.Min(1))
+		},
+		Run: func(c *grumble.Context) error {
+			pluginList := c.Args.StringList("plugins")
+
+			unixServerInfo := server.NewUnixServerInfo()
+			defer unixServerInfo.Close()
+
+			stream, err := unixServerInfo.ConnToStream()
+			if err != nil {
+				return err
+			}
+
+			for i := range pluginList {
+				p := pluginList[i]
+				if _, err = serverclientcommon.CmdPluginDisabled.ExchangeWithData(p, stream); err != nil {
+					pterm.Error.Printfln("插件[%s]禁用失败: %s", p, err.Error())
+				}
+			}
+
+			return nil
+		},
+	}
+
 	// pluginListCmd 插件列表命令
 	pluginListCmd = &grumble.Command{
 		Name:     "ls",
@@ -202,10 +293,24 @@ var (
 			_ = serverData.UnmarshalJson(&pluginInfoList)
 			for i := range pluginInfoList {
 				pluginInfo := pluginInfoList[i]
+				if slices.Contains(args, pluginInfo.Id) || slices.Contains(args, pluginInfo.Name) {
+					continue
+				}
+
+				if prefix != "" && strings.HasPrefix(pluginInfo.Id, prefix) {
+					res = append(res, pluginInfo.Id)
+					continue
+				}
+
+				if !strings.HasPrefix(pluginInfo.Name, prefix) {
+					continue
+				}
+
 				if strings.Contains(pluginInfo.Name, " ") {
 					res = append(res, "\""+pluginInfo.Name+"\"")
 					continue
 				}
+
 				res = append(res, pluginInfo.Name)
 			}
 			return
@@ -284,6 +389,47 @@ var (
 	}
 )
 
+func pluginIdOrNameCompleter(prefix string, args []string) (res []string) {
+	res = make([]string, 0)
+
+	unixServerInfo := server.NewUnixServerInfo()
+	stream, err := unixServerInfo.ConnToStream()
+	if err != nil {
+		return
+	}
+
+	serverData, err := serverclientcommon.CmdPluginInfoPromptList.ExchangeWithData(prefix, stream)
+	if err != nil {
+		return
+	}
+
+	var pluginInfoList []*serverclientcommon.PluginStatusInfo
+	_ = serverData.UnmarshalJson(&pluginInfoList)
+	for i := range pluginInfoList {
+		pluginInfo := pluginInfoList[i]
+		if slices.Contains(args, pluginInfo.Id) || slices.Contains(args, pluginInfo.Name) {
+			continue
+		}
+
+		if prefix != "" && strings.HasPrefix(pluginInfo.Id, prefix) {
+			res = append(res, pluginInfo.Id)
+			continue
+		}
+
+		if !strings.HasPrefix(pluginInfo.Name, prefix) {
+			continue
+		}
+
+		if strings.Contains(pluginInfo.Name, " ") {
+			res = append(res, "\""+pluginInfo.Name+"\"")
+			continue
+		}
+
+		res = append(res, pluginInfo.Name)
+	}
+	return
+}
+
 func rangeDirGetFilePathList(dirName string, recursive bool, callback func(filename string)) int {
 
 	stat, err := os.Stat(dirName)
@@ -291,7 +437,7 @@ func rangeDirGetFilePathList(dirName string, recursive bool, callback func(filen
 		return 0
 	}
 
-	dirs, err := ioutil.ReadDir(dirName)
+	dirs, err := os.ReadDir(dirName)
 	if err != nil {
 		return 0
 	}
@@ -312,7 +458,7 @@ func rangeDirGetFilePathList(dirName string, recursive bool, callback func(filen
 }
 
 func pluginPack(srcFilePath, targetFilePath string) error {
-	if err := packaging_plugin.Packing(srcFilePath, targetFilePath); err != nil {
+	if err := packaging_plugin.Packing(srcFilePath, targetFilePath, nil); err != nil {
 		_ = os.RemoveAll(targetFilePath)
 		return err
 	}

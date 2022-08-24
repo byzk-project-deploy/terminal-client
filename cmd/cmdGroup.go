@@ -13,6 +13,7 @@ var (
 		callCommand,
 		historyCmd,
 		pluginConvertCmd,
+		pwdCommand,
 		remoteServerConvertCmd,
 		{
 			Name: "exit",
@@ -28,8 +29,12 @@ var (
 	pluginCommands = []*grumble.Command{
 		pluginPackCmd,
 		pluginInstallCmd,
+		pluginUninstallCmd,
+		pluginEnabledCmd,
+		pluginDisabledCmd,
 		pluginListCmd,
 		pluginInfoCmd,
+		pwdCommand,
 		modelExitCmd,
 		historyCmd,
 	}
@@ -45,6 +50,7 @@ var (
 		remoteServerRepairCmd,
 		remoteServerUploadCmd,
 		remoteServerDownloadCmd,
+		pwdCommand,
 		modelExitCmd,
 		historyCmd,
 	}
